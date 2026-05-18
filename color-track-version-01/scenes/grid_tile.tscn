@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://bixakunptuli6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jqahv"]
+size = Vector2(64, 64)
+
+[node name="GridTile" type="Area2D" unique_id=897600363]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1674431901]
+shape = SubResource("RectangleShape2D_jqahv")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1451913538]
+offset_right = 64.0
+offset_bottom = 64.0
+
+[node name="Label" type="Label" parent="." unique_id=1073393331]
+offset_right = 40.0
+offset_bottom = 23.0

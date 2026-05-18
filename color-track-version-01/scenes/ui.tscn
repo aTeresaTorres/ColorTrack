@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://7lnggmfx2xs5"]
+
+[node name="Ui" type="CanvasLayer" unique_id=475869158]
+
+[node name="ColorTarget" type="Panel" parent="." unique_id=801291263]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorTarget" unique_id=626614789]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Busca este color:"
+
+[node name="ColorRect" type="ColorRect" parent="ColorTarget" unique_id=2048077248]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Sidebar" type="Panel" parent="." unique_id=110338878]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Sidebar" unique_id=1184455131]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="Sidebar/VBoxContainer" unique_id=1521972794]
+layout_mode = 2
+text = "CONFIGURACIÓN"
+
+[node name="Button" type="Button" parent="Sidebar/VBoxContainer" unique_id=1719594768]
+layout_mode = 2
+text = "Añadir canción"
+
+[node name="Button2" type="Button" parent="Sidebar/VBoxContainer" unique_id=1425772537]
+layout_mode = 2
+text = "Pausa"
+
+[node name="Button3" type="Button" parent="Sidebar/VBoxContainer" unique_id=1988112001]
+layout_mode = 2
+text = "Guardar progreso"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Sidebar/VBoxContainer" unique_id=1397507307]
+
+[node name="TopBar" type="Panel" parent="." unique_id=2028763462]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="TopBar" unique_id=1470523290]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "nivel: \"Nivel 1\""
+
+[node name="Label2" type="Label" parent="TopBar" unique_id=1616416782]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Ronda: \"Ronda 1/3\""
