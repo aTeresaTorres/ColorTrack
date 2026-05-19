@@ -3,32 +3,36 @@
 [node name="Ui" type="CanvasLayer" unique_id=475869158]
 
 [node name="ColorTarget" type="Panel" parent="." unique_id=801291263]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 200.0
+offset_bottom = 200.0
 
 [node name="Label" type="Label" parent="ColorTarget" unique_id=626614789]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+offset_top = 56.0
+offset_right = 200.0
+offset_bottom = 79.0
 text = "Busca este color:"
+horizontal_alignment = 1
 
 [node name="ColorRect" type="ColorRect" parent="ColorTarget" unique_id=2048077248]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 100.0
+offset_right = 200.0
+offset_bottom = 500.0
 
 [node name="Sidebar" type="Panel" parent="." unique_id=110338878]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 100.0
+offset_bottom = 100.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Sidebar" unique_id=1184455131]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 200.0
+offset_bottom = 128.0
 
 [node name="Label" type="Label" parent="Sidebar/VBoxContainer" unique_id=1521972794]
 layout_mode = 2
 text = "CONFIGURACIÓN"
+horizontal_alignment = 1
 
 [node name="Button" type="Button" parent="Sidebar/VBoxContainer" unique_id=1719594768]
 layout_mode = 2
@@ -45,17 +49,20 @@ text = "Guardar progreso"
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Sidebar/VBoxContainer" unique_id=1397507307]
 
 [node name="TopBar" type="Panel" parent="." unique_id=2028763462]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_top = 9.0
+offset_bottom = 9.0
 
 [node name="Label" type="Label" parent="TopBar" unique_id=1470523290]
 layout_mode = 0
-offset_right = 40.0
+offset_right = 200.0
 offset_bottom = 23.0
-text = "nivel: \"Nivel 1\""
+text = "Nivel: \"Nivel 1\""
+horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="TopBar" unique_id=1616416782]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+offset_top = 30.0
+offset_right = 200.0
+offset_bottom = 53.0
 text = "Ronda: \"Ronda 1/3\""
+horizontal_alignment = 1

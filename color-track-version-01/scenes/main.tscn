@@ -3,14 +3,33 @@
 [ext_resource type="PackedScene" uid="uid://dxf38lkjawvh3" path="res://scenes/player.tscn" id="1_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://7lnggmfx2xs5" path="res://scenes/ui.tscn" id="2_sugp2"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0wfyh"]
+size = Vector2(1050, 700)
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0wfyh"]
+
 [node name="Main" type="Node2D" unique_id=2047096258]
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1905383967]
+[node name="Ground" type="StaticBody2D" parent="." unique_id=1027729725]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=987305744]
+position = Vector2(531, 359.5)
+shape = SubResource("RectangleShape2D_0wfyh")
+disabled = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=685334954]
+position = Vector2(531.5, 357.5)
+scale = Vector2(2.0527344, 1.3613281)
+texture = SubResource("NoiseTexture2D_0wfyh")
 
 [node name="GridContainer" type="GridContainer" parent="." unique_id=139944032]
 offset_right = 40.0
 offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
 
 [node name="Player" parent="." unique_id=162789523 instance=ExtResource("1_0wfyh")]
+position = Vector2(530, 360)
 
 [node name="Ui" parent="." unique_id=475869158 instance=ExtResource("2_sugp2")]
+offset = Vector2(1065, 10)
+transform = Transform2D(1, 0, 0, 1, 1065, 10)
