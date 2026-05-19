@@ -1,17 +1,22 @@
 [gd_scene format=3 uid="uid://bixakunptuli6"]
 
+[ext_resource type="Script" uid="uid://bvhrjs0mcr3b4" path="res://scripts/grid_tile.gd" id="1_wprxu"]
+[ext_resource type="Texture2D" uid="uid://5oieihe28fku" path="res://assets/img/white.jpg" id="2_0v2c5"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jqahv"]
-size = Vector2(64, 64)
+size = Vector2(150, 150)
 
 [node name="GridTile" type="Area2D" unique_id=897600363]
+script = ExtResource("1_wprxu")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=422271716]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_0v2c5")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1674431901]
 shape = SubResource("RectangleShape2D_jqahv")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1451913538]
-offset_right = 64.0
-offset_bottom = 64.0
-
 [node name="Label" type="Label" parent="." unique_id=1073393331]
 offset_right = 40.0
 offset_bottom = 23.0
+metadata/_edit_use_anchors_ = true

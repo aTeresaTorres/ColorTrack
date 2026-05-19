@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 @export var speed: float = 300.0
+@export var grid_rect: Rect2  # Límites de la cuadrícula (x, y, ancho, alto)
 
 @onready var fly_timer = $FlyTimer
 
@@ -13,9 +14,17 @@ func _physics_process(delta):
 	velocity = direction * speed
 	move_and_slide()
 	
-	# Activar vuelo con SPACE (solo si tiene la habilidad y no está volando)
+	# Limitar posición dentro de la cuadrícula
+	position.x = clamp(position.x, grid_rect.position.x, grid_rect.position.x + grid_rect.size.x)
+	position.y = clamp(position.y, grid_rect.position.y, grid_rect.position.y + grid_rect.size.y)
+	
+	# Activar vuelo con SPACE
 	if Input.is_action_just_pressed("jump") and can_fly and not is_flying:
 		activate_fly()
+
+# Llamar esta función desde Main cuando la cuadrícula esté lista
+func set_grid_bounds(grid_position: Vector2, grid_size: Vector2):
+	grid_rect = Rect2(grid_position, grid_size)
 
 func unlock_fly():
 	can_fly = true
@@ -23,11 +32,12 @@ func unlock_fly():
 func activate_fly():
 	is_flying = true
 	fly_timer.start()
-	print("Volando por 3 segundos!")  # Temporal para probar
+	# Durante el vuelo, temporalmente desactivamos los límites? 
+	# (para que pueda "salir" del color y no morir)
+	# Lo decidimos después
 
 func _on_fly_timer_timeout():
 	is_flying = false
-	print("Vuelo terminado")
 
 func get_current_tile_color():
-	pass  # Lo haremos después
+	pass
