@@ -15,13 +15,15 @@ var current_phase = "dance"  # "dance", "move", "result"
 var target_color: Color
 var grid_colors: Array = []
 var player_pos: Vector2i = Vector2i(3, 3)
-var time_left: float = 5.0
+var time_left: float = 5
 var round: int = 1
 var dance_timer: float = 0.0
 var move_cooldown: float = 0.0  # Para controlar velocidad
 
 var pause_panel: ColorRect
 var pause_button: Button
+
+var character_sprite: Sprite2D
 
 func _ready():
 	if has_meta("current_level"):
@@ -32,6 +34,7 @@ func _ready():
 	_setup_player()
 	_setup_ui()
 	_setup_music()
+	_setup_character("guyStanding")
 	_update_level_display()
 	_start_dance_phase()
 
@@ -108,6 +111,7 @@ func _setup_music():
 		music_player.stream = default_music
 
 func _start_dance_phase():
+	change_character_image("guyStanding")
 	current_phase = "dance"
 	time_left = 5.0
 	dance_timer = 0.0
@@ -215,6 +219,7 @@ func _validate_result():
 	var current_cell_color = grid_colors[player_pos.y][player_pos.x]
 	
 	if current_cell_color == target_color:
+		change_character_image("guyWinner")
 		# GANÓ la ronda
 		round += 1
 		var level_complete = round > 3
@@ -233,6 +238,7 @@ func _validate_result():
 					color_rect.color = Color.BLACK
 	else:
 		# PERDIÓ
+		change_character_image("guyLoser")
 		pause_button.text = "REINTENTAR"
 	
 	# Mostrar panel SIN pausar primero
@@ -244,6 +250,7 @@ func _validate_result():
 	get_tree().paused = true
 
 func _next_round():
+	change_character_image("guyStanding")
 	# Limpiar y empezar nueva ronda (mismo nivel)
 	current_phase = "dance"
 	round = round  # Ya aumentado en _validate_result
@@ -273,6 +280,7 @@ func _complete_level():
 	_restart_level_with_new_level()
 
 func _restart_level_with_new_level():
+	change_character_image("guyStanding")
 	# Limpiar todo
 	for child in grid_container.get_children():
 		child.queue_free()
@@ -289,6 +297,7 @@ func _restart_level_with_new_level():
 	_start_dance_phase()
 
 func _restart_level():
+	change_character_image("guyStanding")
 	# Reiniciar el nivel actual
 	current_phase = "dance"
 	round = 1
@@ -305,7 +314,7 @@ func _restart_level():
 	_start_dance_phase()
 
 func _on_pause_button_pressed():
-	print("Botón presionado: ", pause_button.text)  # Debug
+	#print("Botón presionado: ", pause_button.text)  # Debug
 	
 	# Despausar
 	get_tree().paused = false
@@ -317,3 +326,29 @@ func _on_pause_button_pressed():
 		_next_round()
 	elif pause_button.text == "SIGUIENTE NIVEL":
 		_complete_level()
+
+func _setup_character(image_name: String):
+	character_sprite = Sprite2D.new()
+	var texture_path = "res://assets/images/" + image_name + ".png"
+	if ResourceLoader.exists(texture_path):
+		var texture = load(texture_path)
+		character_sprite.texture = texture
+		character_sprite.position = Vector2(200, 360)
+		add_child(character_sprite)
+		print("Personaje añadido correctamente")
+	else:
+		print("No se encontró la imagen: ", texture_path)
+
+func change_character_image(image_name: String):
+	var texture_path = "res://assets/images/" + image_name + ".png"
+	print("Intentando cargar: ", texture_path)  # Debug
+	
+	if ResourceLoader.exists(texture_path):
+		var texture = load(texture_path)
+		if character_sprite:
+			character_sprite.texture = texture
+			print("Éxito: cambiado a ", image_name)
+		else:
+			print("character_sprite es null")
+	else:
+		print("No existe el archivo: ", texture_path)

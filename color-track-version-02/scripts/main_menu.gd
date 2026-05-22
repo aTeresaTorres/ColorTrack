@@ -3,6 +3,8 @@ extends Control
 var screen_width = 1152
 var screen_height = 720
 
+var character_sprite: Sprite2D
+
 func _ready():
 	get_window().size = Vector2i(screen_width, screen_height)
 	
@@ -40,6 +42,10 @@ func _ready():
 		continue_btn.set_position(Vector2(screen_width/2 - 100, 320))
 		continue_btn.pressed.connect(_on_continue_pressed)
 		add_child(continue_btn)
+	
+	# Añadir personaje
+	_setup_character("guyWaving")
+	
 
 func load_saved_level() -> int:
 	if FileAccess.file_exists("user://savegame.save"):
@@ -66,3 +72,12 @@ func _start_game(level: int):
 	level_scene.set_meta("current_level", level)
 	get_tree().root.add_child(level_scene)
 	queue_free()
+
+func _setup_character(image_name: String):
+	character_sprite = Sprite2D.new()
+	var texture_path = "res://assets/images/" + image_name + ".png"
+	if ResourceLoader.exists(texture_path):
+		var texture = load(texture_path)
+		character_sprite.texture = texture
+		character_sprite.position = Vector2(200, 360)  # Izquierda, centrado vertical
+		add_child(character_sprite)
