@@ -20,6 +20,9 @@ var round: int = 1
 var dance_timer: float = 0.0
 var move_cooldown: float = 0.0  # Para controlar velocidad
 
+var pause_panel: ColorRect
+var pause_button: Button
+
 func _ready():
 	if has_meta("current_level"):
 		current_level = get_meta("current_level")
@@ -81,6 +84,21 @@ func _setup_ui():
 	# CAMBIADO: abajo del todo (Y = 680, considerando altura 720)
 	timer_bar.set_position(Vector2(1152/2 - 200, 680))
 	add_child(timer_bar)
+	
+	pause_panel = ColorRect.new()
+	pause_panel.color = Color(0, 0, 0, 0.8)
+	pause_panel.set_size(Vector2(300, 150))
+	pause_panel.set_position(Vector2(1152/2 - 150, 720/2 - 75))
+	pause_panel.visible = false
+	pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS  # ← Correcto en Godot 4
+	add_child(pause_panel)
+
+	pause_button = Button.new()
+	pause_button.set_size(Vector2(200, 50))
+	pause_button.set_position(Vector2(50, 50))
+	pause_button.pressed.connect(_on_pause_button_pressed)
+	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS  # ← Correcto en Godot 4
+	pause_panel.add_child(pause_button)
 
 func _setup_music():
 	music_player = AudioStreamPlayer.new()
@@ -96,6 +114,7 @@ func _start_dance_phase():
 	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n¡Baila! (5 seg)"
 	if music_player.stream:
 		music_player.play()
+		music_player.seek(13)
 
 func _process(delta):
 	# MOVIMIENTO SIEMPRE ACTIVO (sin restricciones)
@@ -193,56 +212,64 @@ func _update_player_position():
 	player.position = Vector2(start_x + player_pos.x * CELL_SIZE + 5, start_y + player_pos.y * CELL_SIZE + 5)
 
 func _validate_result():
-	current_phase = "result"
-	time_left = 3.0
-	
 	var current_cell_color = grid_colors[player_pos.y][player_pos.x]
 	
 	if current_cell_color == target_color:
-		ui_text.text = "¡CORRECTO!\n+1 ronda"
-		# Apagar otros colores
+		# GANÓ la ronda
+		round += 1
+		var level_complete = round > 3
+		
+		if level_complete:
+			pause_button.text = "SIGUIENTE NIVEL"
+		else:
+			pause_button.text = "SIGUIENTE"
+		
+		# Apagar otros colores (feedback visual)
 		for i in range(GRID_SIZE):
 			for j in range(GRID_SIZE):
 				if grid_colors[i][j] != target_color:
 					grid_colors[i][j] = Color.BLACK
 					var color_rect = grid_container.get_child(i * GRID_SIZE + j)
 					color_rect.color = Color.BLACK
-		round += 1
 	else:
-		ui_text.text = "¡FALLASTE!\nReiniciando nivel " + str(current_level)
-		await get_tree().create_timer(1.5).timeout
-		_restart_level()
-		return
+		# PERDIÓ
+		pause_button.text = "REINTENTAR"
+	
+	# Mostrar panel SIN pausar primero
+	pause_panel.visible = true
+	pause_button.grab_focus()
+	
+	# Pausar después de mostrar (para que el botón funcione)
+	# IMPORTANTE: ProcessMode debe permitir que UI funcione
+	get_tree().paused = true
 
 func _next_round():
-	# Limpiar y empezar nueva ronda
+	# Limpiar y empezar nueva ronda (mismo nivel)
+	current_phase = "dance"
+	round = round  # Ya aumentado en _validate_result
+	
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
+			var new_color = _random_color()
+			grid_colors[i][j] = new_color
 			var color_rect = grid_container.get_child(i * GRID_SIZE + j)
-			color_rect.color = _random_color()
-			grid_colors[i][j] = color_rect.color
+			color_rect.color = new_color
 	
 	player_pos = Vector2i(3, 3)
 	_update_player_position()
 	_start_dance_phase()
 
 func _complete_level():
-	current_phase = "result"
-	
-	# Subir de nivel (infinito)
+	# Subir de nivel
 	current_level += 1
 	round = 1
-	
-	ui_text.text = "¡NIVEL " + str(current_level - 1) + " COMPLETADO!\nSiguiente: Nivel " + str(current_level)
 	
 	# Guardar progreso
 	var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
 	file.store_var(current_level)
 	file.close()
 	
-	await get_tree().create_timer(2.0).timeout
-	
-	# Reiniciar nivel con nuevo número
+	# Reiniciar escena con nuevo nivel
 	_restart_level_with_new_level()
 
 func _restart_level_with_new_level():
@@ -262,4 +289,31 @@ func _restart_level_with_new_level():
 	_start_dance_phase()
 
 func _restart_level():
-	get_tree().reload_current_scene()
+	# Reiniciar el nivel actual
+	current_phase = "dance"
+	round = 1
+	
+	for i in range(GRID_SIZE):
+		for j in range(GRID_SIZE):
+			var new_color = _random_color()
+			grid_colors[i][j] = new_color
+			var color_rect = grid_container.get_child(i * GRID_SIZE + j)
+			color_rect.color = new_color
+	
+	player_pos = Vector2i(3, 3)
+	_update_player_position()
+	_start_dance_phase()
+
+func _on_pause_button_pressed():
+	print("Botón presionado: ", pause_button.text)  # Debug
+	
+	# Despausar
+	get_tree().paused = false
+	pause_panel.visible = false
+	
+	if pause_button.text == "REINTENTAR":
+		_restart_level()
+	elif pause_button.text == "SIGUIENTE":
+		_next_round()
+	elif pause_button.text == "SIGUIENTE NIVEL":
+		_complete_level()
