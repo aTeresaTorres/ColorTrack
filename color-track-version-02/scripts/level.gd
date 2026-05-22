@@ -170,7 +170,20 @@ func _end_dance_phase():
 	current_phase = "move"
 	move_cooldown = 0
 	music_player.stop()
-	time_left = 5.0
+	
+	# Calcular tiempo según nivel
+	var response_time = 5.0
+	match current_level:
+		1:
+			response_time = 5.0
+		2:
+			response_time = 3.0
+		3, 4:
+			response_time = 2.0
+		_:  # Nivel 5 o más
+			response_time = 1.0
+	
+	time_left = response_time
 	
 	# Elegir color objetivo de los presentes
 	var available_colors = []
@@ -182,7 +195,7 @@ func _end_dance_phase():
 	
 	target_color = available_colors[randi() % available_colors.size()]
 	var color_name = _get_color_name(target_color)
-	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n¡Pisa " + color_name + "! (5 seg)"
+	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n¡Pisa " + color_name + "! (" + str(response_time) + " seg)"
 
 func _get_color_name(color: Color) -> String:
 	if color == Color.RED: return "ROJO"
@@ -333,7 +346,7 @@ func _setup_character(image_name: String):
 	if ResourceLoader.exists(texture_path):
 		var texture = load(texture_path)
 		character_sprite.texture = texture
-		character_sprite.position = Vector2(200, 360)
+		character_sprite.position = Vector2(180, 360)
 		add_child(character_sprite)
 		print("Personaje añadido correctamente")
 	else:
