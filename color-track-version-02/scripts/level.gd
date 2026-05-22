@@ -37,9 +37,18 @@ var buttons_mechanic_active: bool = false  # Solo activa desde nivel 10
 
 var response_time: float = 5.0  # Variable global para el tiempo de respuesta
 
+var difficulty_sprite: Sprite2D = null
+
 func _ready():
 	if has_meta("current_level"):
 		current_level = get_meta("current_level")
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.1, 0.1, 1.0)
+	bg.set_size(Vector2(1152, 720))
+	bg.set_position(Vector2(0, 0))
+	bg.z_index = -10  # Detrás de todo
+	add_child(bg)
 	
 	get_window().size = Vector2i(1152, 720)
 	_setup_grid()
@@ -47,6 +56,8 @@ func _ready():
 	_setup_ui()
 	_setup_music()
 	_setup_character("guyStanding")
+	_setup_controls()
+	_setup_difficulty_indicator()
 	_update_level_display()
 	_start_dance_phase()
 
@@ -142,9 +153,9 @@ func _setup_ui():
 	right_indicator.visible = false
 	
 	pause_panel = ColorRect.new()
-	pause_panel.color = Color(0, 0, 0, 0.85)
-	pause_panel.set_size(Vector2(1152, 150))
-	pause_panel.set_position(Vector2(0, 720/2 - 75))
+	pause_panel.color = Color(0.1, 0.1, 0.1, 0.9)
+	pause_panel.set_size(Vector2(1152, 200))
+	pause_panel.set_position(Vector2(0, 720/2 - 100))
 	pause_panel.visible = false
 	pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS
 	pause_panel.z_index = 100
@@ -152,7 +163,7 @@ func _setup_ui():
 
 	pause_button = Button.new()
 	pause_button.set_size(Vector2(200, 50))
-	pause_button.set_position(Vector2(1152/2 - 100, 50))
+	pause_button.set_position(Vector2(1152/2 - 100, 75))
 	pause_button.pressed.connect(_on_pause_button_pressed)
 	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	pause_button.z_index = 101
@@ -426,6 +437,7 @@ func _restart_level_with_new_level():
 	_setup_grid()
 	_setup_player()
 	_setup_ui()
+	_setup_difficulty_indicator()
 	_update_level_display()
 	_start_dance_phase()
 
@@ -446,6 +458,8 @@ func _restart_level():
 	player_pos = Vector2i(3, 3)
 	_update_player_position()
 	_start_dance_phase()
+	
+	_setup_difficulty_indicator()
 
 func _on_pause_button_pressed():
 	#print("Botón presionado: ", pause_button.text)  # Debug
@@ -468,6 +482,7 @@ func _setup_character(image_name: String):
 		var texture = load(texture_path)
 		character_sprite.texture = texture
 		character_sprite.position = Vector2(180, 360)
+		character_sprite.z_index = 200
 		add_child(character_sprite)
 		print("Personaje añadido correctamente")
 	else:
@@ -540,3 +555,139 @@ func _return_to_menu():
 	
 	# Eliminar el nivel actual
 	queue_free()
+
+func _setup_controls():
+	# Etiqueta "Mover personaje"
+	var move_label = Label.new()
+	move_label.text = "Mover personaje"
+	move_label.add_theme_font_size_override("font_size", 16)
+	move_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	move_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	move_label.set_size(Vector2(200, 25))
+	move_label.set_position(Vector2(1152/2 + 220, 570))
+	move_label.z_index = 50
+	add_child(move_label)
+	
+	# Imagen WASD
+	var wasd_sprite = Sprite2D.new()
+	var wasd_texture = load("res://assets/images/wasd.png")
+	if wasd_texture:
+		wasd_sprite.texture = wasd_texture
+		wasd_sprite.scale = Vector2(0.5, 0.5)
+		wasd_sprite.position = Vector2(1152/2 + 260, 720 - 80)
+		wasd_sprite.z_index = 50
+		add_child(wasd_sprite)
+	else:
+		var wasd_label = Label.new()
+		wasd_label.text = "WASD"
+		wasd_label.add_theme_font_size_override("font_size", 18)
+		wasd_label.add_theme_color_override("font_color", Color.WHITE)
+		wasd_label.set_position(Vector2(1152/2 + 260, 720 - 80))
+		add_child(wasd_label)
+	
+	# Imagen ARROWS
+	var arrows_sprite = Sprite2D.new()
+	var arrows_texture = load("res://assets/images/arrows.png")
+	if arrows_texture:
+		arrows_sprite.texture = arrows_texture
+		arrows_sprite.scale = Vector2(0.5, 0.5)
+		arrows_sprite.position = Vector2(1152/2 + 370, 720 - 80)
+		arrows_sprite.z_index = 50
+		add_child(arrows_sprite)
+	else:
+		var arrows_label = Label.new()
+		arrows_label.text = "←↑↓→"
+		arrows_label.add_theme_font_size_override("font_size", 18)
+		arrows_label.add_theme_color_override("font_color", Color.WHITE)
+		arrows_label.set_position(Vector2(1152/2 + 370, 720 - 80))
+		add_child(arrows_label)
+	
+	# Verificar si la mecánica de botones está o estará activa (nivel actual o futuro)
+	var show_jkl = current_level >= 10
+	
+	if show_jkl:
+		# Etiqueta "Presionar botón"
+		var button_label = Label.new()
+		button_label.text = "Posar"
+		button_label.add_theme_font_size_override("font_size", 16)
+		button_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		button_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button_label.set_size(Vector2(200, 25))
+		button_label.set_position(Vector2(1152/2 + 400, 570))
+		button_label.z_index = 50
+		add_child(button_label)
+		
+		# Imagen JKL
+		var jkl_sprite = Sprite2D.new()
+		var jkl_texture = load("res://assets/images/jkl.png")
+		if jkl_texture:
+			jkl_sprite.texture = jkl_texture
+			jkl_sprite.scale = Vector2(0.5, 0.5)
+			jkl_sprite.position = Vector2(1152/2 + 500, 720 - 80)
+			jkl_sprite.z_index = 50
+			add_child(jkl_sprite)
+		else:
+			var jkl_label = Label.new()
+			jkl_label.text = "J K L"
+			jkl_label.add_theme_font_size_override("font_size", 18)
+			jkl_label.add_theme_color_override("font_color", Color.WHITE)
+			jkl_label.set_position(Vector2(1152/2 + 500, 720 - 80))
+			add_child(jkl_label)
+
+func _setup_difficulty_indicator():
+	if difficulty_sprite:
+		difficulty_sprite.queue_free()
+	
+	difficulty_sprite = Sprite2D.new()
+	var texture_path = ""
+	
+	# Determinar dificultad según nivel
+	match current_level:
+		1:
+			texture_path = "res://assets/images/difficulty_easy.png"
+		2:
+			texture_path = "res://assets/images/difficulty_medium.png"
+		3, 4:
+			texture_path = "res://assets/images/difficulty_hard.png"
+		5, 6, 7, 8, 9:
+			texture_path = "res://assets/images/difficulty_extreme.png"
+		10:
+			texture_path = "res://assets/images/difficulty_easy_advanced.png"
+		11, 12, 13, 14:
+			texture_path = "res://assets/images/difficulty_medium_advanced.png"
+		15, 16, 17, 18, 19:
+			texture_path = "res://assets/images/difficulty_hard_advanced.png"
+		20, 21, 22, 23, 24:
+			texture_path = "res://assets/images/difficulty_extreme_advanced.png"
+		_:
+			texture_path = "res://assets/images/difficulty_infinite.png"
+	
+	if ResourceLoader.exists(texture_path):
+		var texture = load(texture_path)
+		difficulty_sprite.texture = texture
+		difficulty_sprite.scale = Vector2(0.5, 0.5)  # Ajusta escala según necesites
+		difficulty_sprite.position = Vector2(970, 80)  # Esquina superior derecha
+		difficulty_sprite.z_index = 50
+		add_child(difficulty_sprite)
+		print("Dificultad cargada: ", texture_path)
+	else:
+		print("No se encontró imagen de dificultad: ", texture_path)
+		# Texto de respaldo si no hay imagen
+		var difficulty_label = Label.new()
+		var difficulty_text = ""
+		match current_level:
+			1: difficulty_text = "FÁCIL"
+			2: difficulty_text = "MEDIO"
+			3, 4: difficulty_text = "DIFÍCIL"
+			5, 6, 7, 8, 9: difficulty_text = "EXTREMO"
+			10: difficulty_text = "FÁCIL AVZ"
+			11, 12, 13, 14: difficulty_text = "MEDIO AVZ"
+			15, 16, 17, 18, 19: difficulty_text = "DIFÍCIL AVZ"
+			20, 21, 22, 23, 24: difficulty_text = "EXTREMO AVZ"
+			_: difficulty_text = "INFINITO"
+		difficulty_label.text = difficulty_text
+		difficulty_label.add_theme_font_size_override("font_size", 20)
+		difficulty_label.add_theme_color_override("font_color", Color.YELLOW)
+		difficulty_label.set_position(Vector2(1050, 80))
+		difficulty_label.z_index = 50
+		add_child(difficulty_label)
