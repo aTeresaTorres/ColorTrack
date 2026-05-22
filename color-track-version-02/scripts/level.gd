@@ -25,6 +25,18 @@ var pause_button: Button
 
 var character_sprite: Sprite2D
 
+# Nuevas variables para la mecánica de botones
+var required_button: String = ""  # "left", "center", "right"
+var button_pressed_correctly: bool = false
+var button_ui_container: ColorRect
+var left_indicator: Sprite2D
+var center_indicator: Sprite2D
+var right_indicator: Sprite2D
+
+var buttons_mechanic_active: bool = false  # Solo activa desde nivel 10
+
+var response_time: float = 5.0  # Variable global para el tiempo de respuesta
+
 func _ready():
 	if has_meta("current_level"):
 		current_level = get_meta("current_level")
@@ -102,6 +114,48 @@ func _setup_ui():
 	pause_button.pressed.connect(_on_pause_button_pressed)
 	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS  # ← Correcto en Godot 4
 	pause_panel.add_child(pause_button)
+	
+	# Panel para los indicadores de botones (derecha)
+	button_ui_container = ColorRect.new()
+	button_ui_container.color = Color(0, 0, 0, 0)
+	button_ui_container.set_size(Vector2(150, 200))
+	button_ui_container.set_position(Vector2(960, 330))
+	button_ui_container.visible = false  # Oculto hasta fase move
+	add_child(button_ui_container)
+	
+	# Crear indicadores (usando ColorRect como placeholder, luego cámbialo por imágenes)
+	left_indicator = Sprite2D.new()
+	center_indicator = Sprite2D.new()
+	right_indicator = Sprite2D.new()
+	
+	# Si tienes imágenes, cárgalas:
+	var left_texture = load("res://assets/images/left.png")
+	var center_texture = load("res://assets/images/center.png")
+	var right_texture = load("res://assets/images/right.png")
+	
+	if left_texture:
+		left_indicator.texture = left_texture
+		center_indicator.texture = center_texture
+		right_indicator.texture = right_texture
+	else:
+		# Placeholder visual (texto)
+		var label_left = Label.new()
+		label_left.text = "←"
+		label_left.add_theme_font_size_override("font_size", 40)
+		left_indicator = label_left
+	
+	left_indicator.position = Vector2(0, 30)
+	center_indicator.position = Vector2(0, 30)
+	right_indicator.position = Vector2(0, 30)
+	
+	button_ui_container.add_child(left_indicator)
+	button_ui_container.add_child(center_indicator)
+	button_ui_container.add_child(right_indicator)
+	
+	left_indicator.visible = false
+	center_indicator.visible = false
+	right_indicator.visible = false
+	
 
 func _setup_music():
 	music_player = AudioStreamPlayer.new()
@@ -111,11 +165,12 @@ func _setup_music():
 		music_player.stream = default_music
 
 func _start_dance_phase():
+	button_ui_container.visible = false  # Ocultar durante baile
 	change_character_image("guyStanding")
 	current_phase = "dance"
 	time_left = 5.0
 	dance_timer = 0.0
-	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n¡Baila! (5 seg)"
+	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n"
 	if music_player.stream:
 		music_player.play()
 		music_player.seek(13)
@@ -143,12 +198,46 @@ func _process(delta):
 			_end_dance_phase()
 	
 	elif current_phase == "move":
+		# Detectar presión de botones SOLO si la mecánica está activa
+		if buttons_mechanic_active and not button_pressed_correctly:
+			var pressed = ""
+			if Input.is_action_just_pressed("button_left"):
+				pressed = "left"
+			elif Input.is_action_just_pressed("button_center"):
+				pressed = "center"
+			elif Input.is_action_just_pressed("button_right"):
+				pressed = "right"
+			
+			if pressed != "":
+				if pressed == required_button:
+					button_pressed_correctly = true
+					print("Botón correcto!")
+				else:
+					print("Botón incorrecto! Perdiste")
+					_fail_round_direct()
+					return
+		
+		# Si la mecánica NO está activa, automáticamente se considera correcta
+		if not buttons_mechanic_active and not button_pressed_correctly:
+			button_pressed_correctly = true  # Auto-aprobar botón
+			
+		# Movimiento (tu código existente)
+		if move_cooldown <= 0:
+			_handle_movement()
+			_update_player_position()
+		
+		# Timer
 		time_left -= delta
 		var progress = max(time_left / 5.0, 0)
 		timer_bar.set_size(Vector2(400 * progress, 20))
 		
 		if time_left <= 0:
-			_validate_result()
+			# Tiempo terminado sin presionar botón
+			if not button_pressed_correctly:
+				print("Tiempo agotado sin presionar botón")
+				_fail_round_direct()
+			else:
+				_validate_result()
 	
 	elif current_phase == "result":
 		time_left -= delta
@@ -170,17 +259,38 @@ func _end_dance_phase():
 	current_phase = "move"
 	move_cooldown = 0
 	music_player.stop()
+	button_pressed_correctly = false  # Resetear estado
+	
+	# Verificar si la mecánica de botones está activa (nivel 10+)
+	buttons_mechanic_active = current_level >= 10
+	
+	# Solo elegir botón y mostrar UI si la mecánica está activa
+	if buttons_mechanic_active:
+		# Elegir botón aleatorio (left, center, right)
+		var buttons = ["left", "center", "right"]
+		required_button = buttons[randi() % buttons.size()]
+		
+		# Mostrar indicador visual (resaltar el botón requerido)
+		_highlight_required_button()
+		
+		# Mostrar UI de botones
+		button_ui_container.visible = true
+	else:
+		# Ocultar UI de botones
+		button_ui_container.visible = false
 	
 	# Calcular tiempo según nivel
-	var response_time = 5.0
+	response_time = 5.0
 	match current_level:
-		1:
+		1, 10:
 			response_time = 5.0
-		2:
+		2, 11, 12, 13, 14:
 			response_time = 3.0
-		3, 4:
+		3, 4, 15, 16, 17, 18, 19:
 			response_time = 2.0
-		_:  # Nivel 5 o más
+		20, 21, 22, 23, 24:
+			response_time = 1.5
+		_:
 			response_time = 1.0
 	
 	time_left = response_time
@@ -195,7 +305,8 @@ func _end_dance_phase():
 	
 	target_color = available_colors[randi() % available_colors.size()]
 	var color_name = _get_color_name(target_color)
-	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n¡Pisa " + color_name + "! (" + str(response_time) + " seg)"
+	var button_name = {"left":"IZQUIERDA", "center":"CENTRO", "right":"DERECHA"}
+	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n " + color_name
 
 func _get_color_name(color: Color) -> String:
 	if color == Color.RED: return "ROJO"
@@ -230,8 +341,10 @@ func _update_player_position():
 
 func _validate_result():
 	var current_cell_color = grid_colors[player_pos.y][player_pos.x]
+	var on_correct_color = (current_cell_color == target_color)
 	
-	if current_cell_color == target_color:
+	# Condición de victoria: botón correcto Y en color correcto
+	if button_pressed_correctly and on_correct_color:
 		change_character_image("guyWinner")
 		# GANÓ la ronda
 		round += 1
@@ -263,6 +376,7 @@ func _validate_result():
 	get_tree().paused = true
 
 func _next_round():
+	button_ui_container.visible = false  # Ocultar hasta próxima fase move
 	change_character_image("guyStanding")
 	# Limpiar y empezar nueva ronda (mismo nivel)
 	current_phase = "dance"
@@ -293,6 +407,7 @@ func _complete_level():
 	_restart_level_with_new_level()
 
 func _restart_level_with_new_level():
+	button_ui_container.visible = false
 	change_character_image("guyStanding")
 	# Limpiar todo
 	for child in grid_container.get_children():
@@ -310,6 +425,7 @@ func _restart_level_with_new_level():
 	_start_dance_phase()
 
 func _restart_level():
+	button_ui_container.visible = false
 	change_character_image("guyStanding")
 	# Reiniciar el nivel actual
 	current_phase = "dance"
@@ -365,3 +481,45 @@ func change_character_image(image_name: String):
 			print("character_sprite es null")
 	else:
 		print("No existe el archivo: ", texture_path)
+
+func _highlight_required_button():
+	# Primero, ocultar todos
+	left_indicator.visible = false
+	center_indicator.visible = false
+	right_indicator.visible = false
+	
+	# Luego, mostrar solo el requerido
+	match required_button:
+		"left":
+			left_indicator.visible = true
+			if left_indicator is Sprite2D:
+				left_indicator.modulate = Color(1, 1, 1)
+		"center":
+			center_indicator.visible = true
+			if center_indicator is Sprite2D:
+				center_indicator.modulate = Color(1, 1, 1)
+		"right":
+			right_indicator.visible = true
+			if right_indicator is Sprite2D:
+				right_indicator.modulate = Color(1, 1, 1)
+	
+	# Resaltar el requerido
+	var target = null
+	match required_button:
+		"left": target = left_indicator
+		"center": target = center_indicator
+		"right": target = right_indicator
+	
+	if target:
+		if target is Sprite2D:
+			target.modulate = Color(1, 1, 1)
+		elif target is Label:
+			target.add_theme_color_override("font_color", Color(1, 1, 0))
+
+func _fail_round_direct():
+	current_phase = "result"
+	change_character_image("guyLoser")
+	pause_button.text = "REINTENTAR"
+	pause_panel.visible = true
+	pause_button.grab_focus()
+	get_tree().paused = true
