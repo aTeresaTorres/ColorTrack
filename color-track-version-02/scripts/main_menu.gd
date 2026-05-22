@@ -46,6 +46,9 @@ func _ready():
 	# Añadir personaje
 	_setup_character("guyWaving")
 	
+	# Añadir controles
+	_setup_controls()
+	
 
 func load_saved_level() -> int:
 	if FileAccess.file_exists("user://savegame.save"):
@@ -81,3 +84,48 @@ func _setup_character(image_name: String):
 		character_sprite.texture = texture
 		character_sprite.position = Vector2(200, 360)  # Izquierda, centrado vertical
 		add_child(character_sprite)
+
+func _setup_controls():
+	# Etiqueta "Mover personaje"
+	var move_label = Label.new()
+	move_label.text = "Mover personaje:"
+	move_label.add_theme_font_size_override("font_size", 20)
+	move_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	move_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	move_label.set_size(Vector2(200, 30))
+	move_label.set_position(Vector2(screen_width/2 - 100, screen_height - 230))
+	add_child(move_label)
+	
+	# Imagen WASD
+	var wasd_sprite = Sprite2D.new()
+	var wasd_texture = load("res://assets/images/wasd.png")
+	if wasd_texture:
+		wasd_sprite.texture = wasd_texture
+		wasd_sprite.scale = Vector2(0.8, 0.8)
+		wasd_sprite.position = Vector2(screen_width/2 - 90, screen_height - 100)
+		add_child(wasd_sprite)
+	else:
+		# Placeholder
+		var wasd_label = Label.new()
+		wasd_label.text = "WASD"
+		wasd_label.add_theme_font_size_override("font_size", 24)
+		wasd_label.add_theme_color_override("font_color", Color.WHITE)
+		wasd_label.set_position(Vector2(screen_width/2 - 90, screen_height - 100))
+		add_child(wasd_label)
+	
+	# Imagen ARROWS
+	var arrows_sprite = Sprite2D.new()
+	var arrows_texture = load("res://assets/images/arrows.png")
+	if arrows_texture:
+		arrows_sprite.texture = arrows_texture
+		arrows_sprite.scale = Vector2(0.8, 0.8)
+		arrows_sprite.position = Vector2(screen_width/2 + 90, screen_height - 100)
+		add_child(arrows_sprite)
+	else:
+		# Placeholder
+		var arrows_label = Label.new()
+		arrows_label.text = "←↑↓→"
+		arrows_label.add_theme_font_size_override("font_size", 24)
+		arrows_label.add_theme_color_override("font_color", Color.WHITE)
+		arrows_label.set_position(Vector2(screen_width/2 + 90, screen_height - 100))
+		add_child(arrows_label)

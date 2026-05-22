@@ -100,21 +100,6 @@ func _setup_ui():
 	timer_bar.set_position(Vector2(1152/2 - 200, 680))
 	add_child(timer_bar)
 	
-	pause_panel = ColorRect.new()
-	pause_panel.color = Color(0, 0, 0, 0.8)
-	pause_panel.set_size(Vector2(300, 150))
-	pause_panel.set_position(Vector2(1152/2 - 150, 720/2 - 75))
-	pause_panel.visible = false
-	pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS  # ← Correcto en Godot 4
-	add_child(pause_panel)
-
-	pause_button = Button.new()
-	pause_button.set_size(Vector2(200, 50))
-	pause_button.set_position(Vector2(50, 50))
-	pause_button.pressed.connect(_on_pause_button_pressed)
-	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS  # ← Correcto en Godot 4
-	pause_panel.add_child(pause_button)
-	
 	# Panel para los indicadores de botones (derecha)
 	button_ui_container = ColorRect.new()
 	button_ui_container.color = Color(0, 0, 0, 0)
@@ -156,6 +141,22 @@ func _setup_ui():
 	center_indicator.visible = false
 	right_indicator.visible = false
 	
+	pause_panel = ColorRect.new()
+	pause_panel.color = Color(0, 0, 0, 0.85)
+	pause_panel.set_size(Vector2(1152, 150))
+	pause_panel.set_position(Vector2(0, 720/2 - 75))
+	pause_panel.visible = false
+	pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	pause_panel.z_index = 100
+	add_child(pause_panel)
+
+	pause_button = Button.new()
+	pause_button.set_size(Vector2(200, 50))
+	pause_button.set_position(Vector2(1152/2 - 100, 50))
+	pause_button.pressed.connect(_on_pause_button_pressed)
+	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	pause_button.z_index = 101
+	pause_panel.add_child(pause_button)
 
 func _setup_music():
 	music_player = AudioStreamPlayer.new()
@@ -176,6 +177,10 @@ func _start_dance_phase():
 		music_player.seek(13)
 
 func _process(delta):
+	# Detectar ESC para ir al menú principal
+	if Input.is_action_just_pressed("ui_cancel"):  # ui_cancel es ESC por defecto
+		_return_to_menu()
+	
 	# MOVIMIENTO SIEMPRE ACTIVO (sin restricciones)
 	if move_cooldown > 0:
 		move_cooldown -= delta
@@ -228,7 +233,7 @@ func _process(delta):
 		
 		# Timer
 		time_left -= delta
-		var progress = max(time_left / 5.0, 0)
+		var progress = max(time_left / response_time, 0)
 		timer_bar.set_size(Vector2(400 * progress, 20))
 		
 		if time_left <= 0:
@@ -523,3 +528,15 @@ func _fail_round_direct():
 	pause_panel.visible = true
 	pause_button.grab_focus()
 	get_tree().paused = true
+
+func _return_to_menu():
+	# Despausar si estaba pausado
+	if get_tree().paused:
+		get_tree().paused = false
+	
+	# Crear el menú desde código (igual que en _start_game)
+	var menu = load("res://scenes/MainMenu.tscn").instantiate()
+	get_tree().root.add_child(menu)
+	
+	# Eliminar el nivel actual
+	queue_free()
