@@ -129,3 +129,30 @@ func _setup_controls():
 		arrows_label.add_theme_color_override("font_color", Color.WHITE)
 		arrows_label.set_position(Vector2(screen_width/2 + 90, screen_height - 100))
 		add_child(arrows_label)
+	
+	# "POSA"
+	var button_label = Label.new()
+	button_label.text = "Posa:"
+	button_label.add_theme_font_size_override("font_size", 20)
+	button_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	button_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button_label.set_size(Vector2(200, 30))
+	button_label.set_position(Vector2(screen_width/2 + 250, screen_height - 230))
+	add_child(button_label)
+	
+	# Imagen JKL
+	var jkl_sprite = Sprite2D.new()
+	var jkl_texture = load("res://assets/images/jkl.png")
+	if jkl_texture:
+		jkl_sprite.texture = jkl_texture
+		jkl_sprite.scale = Vector2(0.8, 0.8)
+		jkl_sprite.position = Vector2(screen_width/2 + 350, screen_height - 105)
+		add_child(jkl_sprite)
+	else:
+		# Placeholder
+		var jkl_label = Label.new()
+		jkl_label.text = "J K L"
+		jkl_label.add_theme_font_size_override("font_size", 24)
+		jkl_label.add_theme_color_override("font_color", Color.WHITE)
+		jkl_label.set_position(Vector2(screen_width/2 + 350, screen_height - 105))
+		add_child(jkl_label)
