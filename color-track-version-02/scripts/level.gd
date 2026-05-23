@@ -39,6 +39,9 @@ var response_time: float = 5.0  # Variable global para el tiempo de respuesta
 
 var difficulty_sprite: Sprite2D = null
 
+var special_message_panel: ColorRect
+var special_message_button: Button
+
 func _ready():
 	if has_meta("current_level"):
 		current_level = get_meta("current_level")
@@ -444,17 +447,21 @@ func _next_round():
 	_start_dance_phase()
 
 func _complete_level():
-	# Subir de nivel
-	current_level += 1
-	round = 1
-	
-	# Guardar progreso
-	var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
-	file.store_var(current_level)
-	file.close()
-	
-	# Reiniciar escena con nuevo nivel
-	_restart_level_with_new_level()
+	if current_level == 9:
+		_show_level_10_warning()
+		return
+	else:
+		# Subir de nivel
+		current_level += 1
+		round = 1
+		
+		# Guardar progreso
+		var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
+		file.store_var(current_level)
+		file.close()
+		
+		# Reiniciar escena con nuevo nivel
+		_restart_level_with_new_level()
 
 func _restart_level_with_new_level():
 	button_ui_container.visible = false
@@ -724,3 +731,118 @@ func _setup_difficulty_indicator():
 		difficulty_label.set_position(Vector2(1050, 80))
 		difficulty_label.z_index = 50
 		add_child(difficulty_label)
+
+func _show_level_10_warning():
+	# Pausar el juego
+	get_tree().paused = true
+	
+	# Panel de fondo semi-transparente
+	special_message_panel = ColorRect.new()
+	special_message_panel.color = Color(0, 0, 0, 0.9)
+	special_message_panel.set_size(Vector2(1152, 720))
+	special_message_panel.set_position(Vector2(0, 0))
+	special_message_panel.z_index = 200
+	special_message_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(special_message_panel)
+	
+	# Personaje en el mensaje (usando tutorial_1_4 o una imagen especial)
+	var msg_character = Sprite2D.new()
+	var char_texture = load("res://assets/images/tutorial_2_1.png")
+	if char_texture:
+		msg_character.texture = char_texture
+	msg_character.position = Vector2(1152/2, 720/2 - 50)
+	msg_character.z_index = 501
+	msg_character.scale = Vector2(1, 1)
+	special_message_panel.add_child(msg_character)
+	
+	# Título del mensaje
+	var title_label = Label.new()
+	title_label.text = "¡NIVEL 10 DESBLOQUEADO!"
+	title_label.add_theme_font_size_override("font_size", 36)
+	title_label.add_theme_color_override("font_color", Color.YELLOW)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.set_size(Vector2(1152, 60))
+	title_label.set_position(Vector2(0, 50))
+	title_label.z_index = 201
+	special_message_panel.add_child(title_label)
+	
+	# Texto explicativo
+	var message_label = Label.new()
+	message_label.text = "A partir del Nivel 10, se activará una NUEVA MECÁNICA:\n\n"
+	message_label.text += "Presiona los botones que aparecerán en pantalla:\n\n"
+	message_label.text += "   J   →   Izquierda\n"
+	message_label.text += "   K   →   Centro\n"
+	message_label.text += "   L   →   Derecha\n\n"
+	message_label.text += "DEBES presionar el botón correcto Y estar parado en el color indicado.\n"
+	message_label.text += "¡Si fallas el botón, pierdes la ronda inmediatamente!\n\n"
+	message_label.text += "¿Estás listo para el desafío?"
+	message_label.add_theme_font_size_override("font_size", 22)
+	message_label.add_theme_color_override("font_color", Color.WHITE)
+	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	message_label.set_size(Vector2(700, 300))
+	message_label.set_position(Vector2(1152/2 - 350, 150))
+	message_label.z_index = 201
+	special_message_panel.add_child(message_label)
+	
+	# Botón para continuar
+	special_message_button = Button.new()
+	special_message_button.text = "¡ENTIENDO!"
+	special_message_button.set_size(Vector2(300, 60))
+	special_message_button.set_position(Vector2(1152/2 - 150, 1000))
+	special_message_button.pressed.connect(_on_special_message_closed)
+	special_message_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	special_message_button.z_index = 201
+	special_message_panel.add_child(special_message_button)
+	special_message_button.grab_focus()
+	
+	# Indicador SPACE (opcional)
+	var space_img = Sprite2D.new()
+	var space_tex = load("res://assets/images/space.png")
+	if space_tex:
+		space_img.texture = space_tex
+		space_img.scale = Vector2(0.4, 0.4)
+		space_img.position = Vector2(1152/2, 630)
+		space_img.z_index = 201
+		special_message_panel.add_child(space_img)
+	
+	var space_label = Label.new()
+	space_label.text = "o presiona ESPACIO"
+	space_label.add_theme_font_size_override("font_size", 14)
+	space_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	space_label.position = Vector2(1152/2 + 30, 1000)
+	space_label.z_index = 201
+	special_message_panel.add_child(space_label)
+	
+	# Forzar que el botón tenga foco
+	special_message_button.grab_focus()
+
+func _on_special_message_closed():
+	# Limpiar el panel
+	if special_message_panel:
+		special_message_panel.queue_free()
+		special_message_panel = null
+	
+	# Despausar y continuar al nivel 10
+	get_tree().paused = false
+	
+	# Continuar al nivel 10
+	current_level += 1
+	round = 1
+	
+	# Guardar progreso
+	var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
+	file.store_var(current_level)
+	file.close()
+	
+	# Reiniciar escena con nuevo nivel
+	_restart_level_with_new_level()
+
+func _input(event):
+	# Para el mensaje especial, permitir SPACE como atajo
+	if special_message_panel and special_message_panel.visible and event.is_action_pressed("ui_accept"):
+		_on_special_message_closed()
+	
+	# ESC para ir al menú principal (solo si no hay mensaje especial)
+	if not special_message_panel and Input.is_action_just_pressed("ui_cancel"):
+		_return_to_menu()
