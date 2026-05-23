@@ -292,11 +292,9 @@ func _process(delta):
 			if pressed != "":
 				if pressed == required_button:
 					button_pressed_correctly = true
-					print("Botón correcto!")
 					# Mostrar el indicador correcto y ocultar el normal
 					_show_correct_button_feedback()
 				else:
-					print("Botón incorrecto! Perdiste")
 					_fail_round_direct()
 					return
 		
@@ -317,7 +315,6 @@ func _process(delta):
 		if time_left <= 0:
 			# Tiempo terminado sin presionar botón
 			if not button_pressed_correctly:
-				print("Tiempo agotado sin presionar botón")
 				_fail_round_direct()
 			else:
 				_validate_result()
@@ -546,8 +543,6 @@ func _restart_level():
 	_setup_difficulty_indicator()
 
 func _on_pause_button_pressed():
-	#print("Botón presionado: ", pause_button.text)  # Debug
-	
 	# Despausar
 	get_tree().paused = false
 	pause_panel.visible = false
@@ -568,23 +563,14 @@ func _setup_character(image_name: String):
 		character_sprite.position = Vector2(180, 360)
 		character_sprite.z_index = 200
 		add_child(character_sprite)
-		print("Personaje añadido correctamente")
-	else:
-		print("No se encontró la imagen: ", texture_path)
 
 func change_character_image(image_name: String):
 	var texture_path = "res://assets/images/" + image_name + ".png"
-	print("Intentando cargar: ", texture_path)  # Debug
 	
 	if ResourceLoader.exists(texture_path):
 		var texture = load(texture_path)
 		if character_sprite:
 			character_sprite.texture = texture
-			print("Éxito: cambiado a ", image_name)
-		else:
-			print("character_sprite es null")
-	else:
-		print("No existe el archivo: ", texture_path)
 
 func _highlight_required_button():
 	# Primero, ocultar todos
@@ -751,9 +737,7 @@ func _setup_difficulty_indicator():
 		difficulty_sprite.position = Vector2(970, 80)  # Esquina superior derecha
 		difficulty_sprite.z_index = 50
 		add_child(difficulty_sprite)
-		print("Dificultad cargada: ", texture_path)
 	else:
-		print("No se encontró imagen de dificultad: ", texture_path)
 		# Texto de respaldo si no hay imagen
 		var difficulty_label = Label.new()
 		var difficulty_text = ""

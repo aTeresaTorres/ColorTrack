@@ -150,8 +150,6 @@ func _update_character_image():
 	var texture_path = "res://assets/images/" + tutorial_images[current_step - 1] + ".png"
 	if ResourceLoader.exists(texture_path):
 		character_sprite.texture = load(texture_path)
-	else:
-		print("No se encontró: ", texture_path)
 
 func _input(event):
 	if Input.is_action_just_pressed("ui_cancel"):
