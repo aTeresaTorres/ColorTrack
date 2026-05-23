@@ -32,6 +32,9 @@ var button_ui_container: ColorRect
 var left_indicator: Sprite2D
 var center_indicator: Sprite2D
 var right_indicator: Sprite2D
+var left_correct_indicator: Sprite2D
+var center_correct_indicator: Sprite2D
+var right_correct_indicator: Sprite2D
 
 var buttons_mechanic_active: bool = false  # Solo activa desde nivel 10
 
@@ -155,6 +158,31 @@ func _setup_ui():
 	center_indicator.visible = false
 	right_indicator.visible = false
 	
+	# Indicadores de "correcto" (inicialmente ocultos)
+	left_correct_indicator = Sprite2D.new()
+	center_correct_indicator = Sprite2D.new()
+	right_correct_indicator = Sprite2D.new()
+
+	var left_correct_texture = load("res://assets/images/left_correct.png")
+	var center_correct_texture = load("res://assets/images/center_correct.png")
+	var right_correct_texture = load("res://assets/images/right_correct.png")
+
+	if left_correct_texture:
+		left_correct_indicator.texture = left_correct_texture
+		center_correct_indicator.texture = center_correct_texture
+		right_correct_indicator.texture = right_correct_texture
+
+	left_correct_indicator.position = Vector2(0, 30)
+	center_correct_indicator.position = Vector2(0, 30)
+	right_correct_indicator.position = Vector2(0, 30)
+	left_correct_indicator.visible = false
+	center_correct_indicator.visible = false
+	right_correct_indicator.visible = false
+
+	button_ui_container.add_child(left_correct_indicator)
+	button_ui_container.add_child(center_correct_indicator)
+	button_ui_container.add_child(right_correct_indicator)
+	
 	pause_panel = ColorRect.new()
 	pause_panel.color = Color(0.1, 0.1, 0.1, 0.9)
 	pause_panel.set_size(Vector2(1152, 200))
@@ -265,6 +293,8 @@ func _process(delta):
 				if pressed == required_button:
 					button_pressed_correctly = true
 					print("Botón correcto!")
+					# Mostrar el indicador correcto y ocultar el normal
+					_show_correct_button_feedback()
 				else:
 					print("Botón incorrecto! Perdiste")
 					_fail_round_direct()
@@ -429,6 +459,10 @@ func _validate_result():
 	get_tree().paused = true
 
 func _next_round():
+	left_correct_indicator.visible = false
+	center_correct_indicator.visible = false
+	right_correct_indicator.visible = false
+	
 	button_ui_container.visible = false  # Ocultar hasta próxima fase move
 	change_character_image("guyStanding")
 	# Limpiar y empezar nueva ronda (mismo nivel)
@@ -464,6 +498,10 @@ func _complete_level():
 		_restart_level_with_new_level()
 
 func _restart_level_with_new_level():
+	left_correct_indicator.visible = false
+	center_correct_indicator.visible = false
+	right_correct_indicator.visible = false
+
 	button_ui_container.visible = false
 	change_character_image("guyStanding")
 	# Limpiar todo
@@ -484,6 +522,10 @@ func _restart_level_with_new_level():
 	_setup_controls()
 
 func _restart_level():
+	left_correct_indicator.visible = false
+	center_correct_indicator.visible = false
+	right_correct_indicator.visible = false
+
 	button_ui_container.visible = false
 	change_character_image("guyStanding")
 	# Reiniciar el nivel actual
@@ -846,3 +888,32 @@ func _input(event):
 	# ESC para ir al menú principal (solo si no hay mensaje especial)
 	if not special_message_panel and Input.is_action_just_pressed("ui_cancel"):
 		_return_to_menu()
+
+func _show_correct_button_feedback():
+	# Ocultar indicador normal y mostrar el de "correcto"
+	match required_button:
+		"left":
+			left_indicator.visible = false
+			left_correct_indicator.visible = true
+			left_correct_indicator.modulate = Color(1, 1, 1)
+		"center":
+			center_indicator.visible = false
+			center_correct_indicator.visible = true
+			center_correct_indicator.modulate = Color(1, 1, 1)
+		"right":
+			right_indicator.visible = false
+			right_correct_indicator.visible = true
+			right_correct_indicator.modulate = Color(1, 1, 1)
+	
+	# Opcional: ocultar después de 0.5 segundos (pero mantener hasta que termine la ronda)
+	var timer = Timer.new()
+	timer.wait_time = 0.5
+	timer.one_shot = true
+	timer.timeout.connect(_hide_correct_button_feedback)
+	add_child(timer)
+	timer.start()
+
+func _hide_correct_button_feedback():
+	# No ocultamos completamente porque queremos que se vea que ya se presionó
+	# Solo cambiamos el color o mantenemos visible
+	pass
