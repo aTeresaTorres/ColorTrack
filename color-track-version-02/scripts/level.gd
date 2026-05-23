@@ -250,7 +250,7 @@ func _start_dance_phase():
 	ui_text.text = "Nivel " + str(current_level) + " - Ronda " + str(round) + "/3\n"
 	if music_player.stream:
 		music_player.play()
-		music_player.seek(13)
+		music_player.seek(0)
 
 func _process(delta):
 	# Detectar ESC para ir al menú principal
