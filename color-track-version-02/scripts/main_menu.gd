@@ -10,7 +10,7 @@ func _ready():
 	
 	# Fondo
 	var bg = ColorRect.new()
-	bg.color = Color(0.0, 0.0, 0.0)
+	bg.color = Color(0.1, 0.1, 0.1)
 	bg.set_size(Vector2(screen_width, screen_height))
 	add_child(bg)
 	
@@ -62,7 +62,13 @@ func _on_new_game_pressed():
 	# Borrar progreso
 	if FileAccess.file_exists("user://savegame.save"):
 		DirAccess.remove_absolute("user://savegame.save")
-	_start_game(1)
+	
+	# Abrir tutorial en lugar de nivel 1
+	var tutorial_scene = Control.new()
+	var tutorial_script = preload("res://scripts/Tutorial.gd")
+	tutorial_scene.set_script(tutorial_script)
+	get_tree().root.add_child(tutorial_scene)
+	queue_free()
 
 func _on_continue_pressed():
 	var saved_level = load_saved_level()

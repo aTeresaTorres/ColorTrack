@@ -168,6 +168,40 @@ func _setup_ui():
 	pause_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	pause_button.z_index = 101
 	pause_panel.add_child(pause_button)
+	
+	if current_level <= 2:
+		var space_indicator = Sprite2D.new()
+		var space_texture = load("res://assets/images/space.png")
+		if space_texture:
+			space_indicator.texture = space_texture
+			space_indicator.scale = Vector2(0.4, 0.4)
+			space_indicator.position = Vector2(1152/2 - 18, 168)
+			space_indicator.z_index = 101
+			space_indicator.process_mode = Node.PROCESS_MODE_ALWAYS
+			space_indicator.modulate = Color(1, 1, 1, 0.7)  # 70% opacidad (transparencia)
+			pause_panel.add_child(space_indicator)
+		else:
+			# Placeholder
+			var space_label = Label.new()
+			space_label.text = "SPACE"
+			space_label.add_theme_font_size_override("font_size", 16)
+			space_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 0.7))
+			space_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			space_label.set_size(Vector2(100, 30))
+			space_label.set_position(Vector2(1152/2 - 50, 130))
+			space_label.z_index = 101
+			pause_panel.add_child(space_label)
+		
+		# Texto de ayuda
+		var space_hint = Label.new()
+		space_hint.text = "Presiona                              para continuar"
+		space_hint.add_theme_font_size_override("font_size", 12)
+		space_hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 0.7))
+		space_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		space_hint.set_size(Vector2(200, 20))
+		space_hint.set_position(Vector2(1152/2 - 153, 160))
+		space_hint.z_index = 101
+		pause_panel.add_child(space_hint)
 
 func _setup_music():
 	music_player = AudioStreamPlayer.new()
@@ -440,6 +474,7 @@ func _restart_level_with_new_level():
 	_setup_difficulty_indicator()
 	_update_level_display()
 	_start_dance_phase()
+	_setup_controls()
 
 func _restart_level():
 	button_ui_container.visible = false
@@ -602,11 +637,9 @@ func _setup_controls():
 		arrows_label.set_position(Vector2(1152/2 + 370, 720 - 80))
 		add_child(arrows_label)
 	
-	# Verificar si la mecánica de botones está o estará activa (nivel actual o futuro)
-	var show_jkl = current_level >= 10
-	
+	var show_jkl = current_level > 9
 	if show_jkl:
-		# Etiqueta "Presionar botón"
+		# Etiqueta "Posar"
 		var button_label = Label.new()
 		button_label.text = "Posar"
 		button_label.add_theme_font_size_override("font_size", 16)
